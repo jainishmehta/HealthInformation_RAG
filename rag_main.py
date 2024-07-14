@@ -88,4 +88,4 @@ iface = gr.Interface(
 )
 
 # Launch the Gradio interface
-iface.launch()
+iface.launch(share=True)
