@@ -1,6 +1,6 @@
 # HealthInformation_RAG
 
-Creating a RAG to enhance wellness tips based on certain known diseases that an individual may have.
+This RAG aims to enhance wellness tips based on certain known diseases that an individual may have.
 
 
 ## Documents
