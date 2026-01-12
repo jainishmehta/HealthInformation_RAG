@@ -12,7 +12,6 @@ from langchain import hub
 from langchain_core.prompts import ChatPromptTemplate
 import gradio as gr
 
-# Load the CSV file
 df = pd.read_csv('web_scraping/mayo_clinic_wellness_tips.csv')
 
 df['text'] = "For " + df['disease'] + 'consider ' + df['tip']
@@ -32,11 +31,9 @@ embeddings = hf.embed_documents(texts)
 df = pd.DataFrame(embeddings, columns=[f"dim_{i}" for i in range(len(embeddings[0]))])
 df['text'] = texts
 
-# Create a SQLite database
 conn = sqlite3.connect('embeddings.db')
 df.to_sql('embeddings', conn, if_exists='replace', index=False)
 
-# Close the connection
 conn.close()
 
 
@@ -45,7 +42,7 @@ documents = texts
 text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
 docs = text_splitter.create_documents(documents)
 db = FAISS.from_documents(docs,hf)
-# Step 2: Create a FAISS Vector Store
+# Create a FAISS Vector Store
 vector_store = FAISS.from_texts(texts, hf)
 
 llm = ChatOllama(model="mistral", callbacks=[StreamingStdOutCallbackHandler()])
@@ -73,7 +70,6 @@ question_answer_chain = create_stuff_documents_chain(llm, prompt)
 
 retrieval_chain = create_retrieval_chain(retriever, question_answer_chain)
 
-# Function to handle query
 def answer_query(query):
     result = retrieval_chain.invoke({"input": query})
     return result["answer"]
@@ -87,5 +83,5 @@ iface = gr.Interface(
     description="Ask questions about health and get concise answers based on the context."
 )
 
-# Launch the Gradio interface
 iface.launch(share=True)
+
