@@ -52,7 +52,6 @@ def search_and_navigate(driver, disease):
             best_match = result
             break
         if not best_match:
-            # If no exact match is found, find the result that contains either "Diagnosis" or "treatment"
             for result in search_results:
                 if "Diagnosis" in result.text or "treatment" in result.text:
                     best_match = result
