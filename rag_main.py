@@ -34,9 +34,10 @@ conn.close()
 llm = ChatOllama(model="mistral", temperature=0.4)
 system_prompt = """First only consider if the disease name is in the tips, do not include if it is just a symptom or complication is in the list. Answer the question from the documents given.
 If the disease is not in the documents, say you do not know the tip for that disease.
+If the question is not related to the documents, say you do not know.
 Say you do not know if the answer cannot be found in the documents.
 Keep it brief to 2 or 3 sentences.
-If the question is not related to the documents, say you do not know."""
+"""
 
 vector = FAISS.from_documents(docs, hf)
 retriever = VectorStoreRetriever(vectorstore=vector)
