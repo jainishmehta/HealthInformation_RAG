@@ -63,7 +63,3 @@ iface = gr.Interface(
 )
 
 iface.launch(share=True)
-
-def test_dummy():
-    pass
-test_dummy()
