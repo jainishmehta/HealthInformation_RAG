@@ -2,7 +2,7 @@
 
 This RAG aims to enhance wellness tips based on certain known diseases that an individual may have.
 
-![HealthInformation RAG Demo](health_information.jpg)
+![HealthInformation RAG Demo](deployment/health_information.jpg)
 
 ## Documents
 - Currently using MayoClinic for data collection of disease and a specified tip. 
