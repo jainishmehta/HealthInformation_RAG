@@ -8,14 +8,13 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from urllib.parse import quote
 from bs4 import BeautifulSoup
-
+import threading
 import pandas as pd
 import time
 
 def init_driver():
     chrome_options = Options()
     #chrome_options.add_argument("--headless=new") 
-    
     try:
         driver = webdriver.Chrome(options=chrome_options)
     except Exception as e:
@@ -26,9 +25,9 @@ def init_driver():
 
 def accept_cookies(driver):
     try:
-        accept_button = WebDriverWait(driver, 5).until(
-            EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Accept additional cookies')]"))
-        )
+        accept_button = WebDriverWait(driver, 4).until(
+                    EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Accept additional cookies')]"))
+                )
         accept_button.click()
         time.sleep(2)
     except Exception as e:
@@ -43,7 +42,7 @@ def search_and_navigate(driver, disease):
     driver.get(base_url)
     accept_cookies(driver)
     try:
-       time.sleep(5)
+       time.sleep(1)
        search_results = driver.find_elements(By.CSS_SELECTOR, 'a.azsearchlink')
        # Iterate through the search results and find the one closest to "Diagnosis and treatment"
        best_match = None
@@ -56,11 +55,10 @@ def search_and_navigate(driver, disease):
                 if "Diagnosis" in result.text or "treatment" in result.text:
                     best_match = result
                     break
-        
         # If a match is found, click it
         if best_match:
             best_match.click()
-            time.sleep(10)
+            time.sleep(2)
             return driver.page_source
         else:
             print(f"No relevant result found for {disease}")
@@ -71,6 +69,8 @@ def search_and_navigate(driver, disease):
         return None
 
 def scrape_disease_tips(page_source):
+    if not page_source:
+        return None
     soup = BeautifulSoup(page_source, 'html.parser')
     tips_section = soup.find('div', class_='content')
     
@@ -94,6 +94,19 @@ def scrape_disease_tips(page_source):
     return tips_list
 
 driver = init_driver()
+driver2 = init_driver()
+
+def search_disease(data, driver, diseases):
+    for disease in diseases:
+        page_source = search_and_navigate(driver, disease)
+        tips = scrape_disease_tips(page_source)
+        if tips:
+            for tip in tips:
+                data.append({'disease': disease, 'tip': tip})
+        else:
+            continue
+        time.sleep(1)
+    driver.quit()
 
 if driver:
     data = []
@@ -106,23 +119,17 @@ if driver:
     diseases = [link.get_attribute('title') for link in links]
 
     print(diseases)
-    time.sleep(15)
+    time.sleep(5)
     for disease in diseases:
         print(f"Scraping tips for: {disease}")
-
+if driver and driver2:
     data = []
-    for disease in diseases:
-        page_source = search_and_navigate(driver, disease)
-        if page_source:
-            tips = scrape_disease_tips(page_source)
-            if tips:
-                for tip in tips:
-                    data.append({'disease': disease, 'tip': tip})
-            else:
-                continue
-            time.sleep(1)
-    driver.quit()
-
+    threads1 = threading.Thread(target=search_disease, args=(data, driver, diseases[:2]))
+    #threads2 = threading.Thread(target=search_disease, args=(data, driver2, diseases[len(diseases)//2:]))
+    threads1.start()
+   # threads2.start()
+    threads1.join()
+   # threads2.join()
     df = pd.DataFrame(data)
     df.to_csv('mayo_clinic_wellness_tips.csv', index=False, encoding='utf-8')
 
